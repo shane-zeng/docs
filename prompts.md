@@ -10,6 +10,8 @@
     - [Multi-select](#multiselect)
     - [Suggest](#suggest)
     - [Search](#search)
+- [Informational Messages](#informational-messages)
+- [Hint Text](#hint-text)
 - [Terminal Considerations](#terminal-considerations)
 - [Unsupported Environments & Fallbacks](#fallbacks)
 
@@ -17,6 +19,8 @@
 ## Introduction
 
 [Laravel Prompts](https://github.com/laravel/prompts) is a PHP package for adding beautiful and user-friendly forms to your command-line applications, with browser-like features including placeholder text and validation.
+
+<img src="https://laravel.com/img/docs/prompts-example.png">
 
 Laravel Prompts is perfect for accepting user input in your [Artisan console commands](/docs/{{version}}/artisan#writing-commands), but it may also be used in any command-line PHP project.
 
@@ -272,7 +276,7 @@ $role = select(
             ? 'An owner already exists.'
             : null
     }
-)
+);
 ```
 
 If the `options` argument is an associative array, then the closure will receive the selected key, otherwise it will receive the selected value. The closure may return an error message, or `null` if the validation passes.
@@ -501,6 +505,29 @@ $id = search(
 ```
 
 If the `options` closure returns an associative array, then the closure will receive the selected key, otherwise, it will receive the selected value. The closure may return an error message, or `null` if the validation passes.
+
+<a name="informational-messages"></a>
+### Informational Messages
+
+The `note`, `info`, `warning`, `error`, and `alert` functions may be used to display informational messages:
+
+```php
+use function Laravel\Prompts\info;
+
+info('Package installed successfully.');
+```
+
+<a name="hint-text"></a>
+### Hint Text
+
+All prompt functions also support "hint text". This text will be displayed underneath the prompt to give the user information or instructions regarding the prompt:
+
+```php
+$email = text(
+    label: 'What is your email address?',
+    hint: 'We will never share your email address with anyone.',
+);
+```
 
 <a name="terminal-considerations"></a>
 ### Terminal Considerations
