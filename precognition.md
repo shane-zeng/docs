@@ -11,6 +11,7 @@
 - [Customizing Validation Rules](#customizing-validation-rules)
 - [Handling File Uploads](#handling-file-uploads)
 - [Managing Side-Effects](#managing-side-effects)
+- [Testing](#testing)
 
 <a name="introduction"></a>
 ## Introduction
@@ -83,7 +84,9 @@ const submit = () => form.submit();
             {{ form.errors.email }}
         </div>
 
-        <button>Create User</button>
+        <button :disabled="form.processing">
+            Create User
+        </button>
     </form>
 </template>
 ```
@@ -159,6 +162,14 @@ const submit = () => form.submit()
     .catch(error => {
         alert('An error occurred.');
     });
+```
+
+You may determine if a form submission request is in-flight by inspecting the form's `processing` property:
+
+```html
+<button :disabled="form.processing">
+    Submit
+</button>
 ```
 
 <a name="using-vue-and-inertia"></a>
@@ -254,7 +265,9 @@ export default function Form() {
             />
             {form.invalid('email') && <div>{form.errors.email}</div>}
 
-            <button>Create User</button>
+            <button disabled={form.processing}>
+                Create User
+            </button>
         </form>
     );
 };
@@ -325,6 +338,14 @@ const submit = (e) => {
             alert('An error occurred.');
         });
 };
+```
+
+You may determine if a form submission request is in-flight by inspecting the form's `processing` property:
+
+```html
+<button disabled={form.processing}>
+    Submit
+</button>
 ```
 
 <a name="using-react-and-inertia"></a>
@@ -429,7 +450,9 @@ To enable live validation, you should bind the form's data to it's relevant inpu
         <div x-text="form.errors.email"></div>
     </template>
 
-    <button>Create User</button>
+    <button :disabled="form.processing">
+        Create User
+    </button>
 </form>
 ```
 
@@ -477,6 +500,14 @@ You may also determine if an input has passed or failed validation by passing th
 
 > **Warning**
 > A form input will only appear as valid or invalid once it has changed and a validation response has been received.
+
+You may determine if a form submission request is in-flight by inspecting the form's `processing` property:
+
+```html
+<button :disabled="form.processing">
+    Submit
+</button>
+```
 
 <a name="repopulating-old-form-data"></a>
 #### Repopulating Old Form Data
@@ -642,5 +673,25 @@ class InteractionMiddleware
 
         return $next($request);
     }
+}
+```
+
+<a name="testing"></a>
+## Testing
+
+If you would like to make precognitive requests in your tests, Laravel's `TestCase` includes a `withPrecognition` helper which will add the `Precognition` request header.
+
+Additionally, if you would like to assert that a precognitive request was successful, e.g., did not return any validation errors, you may use the `assertSuccessfulPrecognition` method on the response:
+
+```php
+public function test_it_validates_registration_form_with_precognition()
+{
+    $response = $this->withPrecognition()
+        ->post('/register', [
+            'name' => 'Taylor Otwell',
+        ]);
+
+    $response->assertSuccessfulPrecognition();
+    $this->assertSame(0, User::count());
 }
 ```

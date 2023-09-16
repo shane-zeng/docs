@@ -107,6 +107,9 @@ Finally, don't forget to instruct your application to use the `database` driver 
 
 In order to use the `redis` queue driver, you should configure a Redis database connection in your `config/database.php` configuration file.
 
+> **Warning**  
+> The `serializer` and `compression` Redis options are not supported by the `redis` queue driver.
+
 **Redis Cluster**
 
 If your Redis queue connection uses a Redis Cluster, your queue names must contain a [key hash tag](https://redis.io/docs/reference/cluster-spec/#hash-tags). This is required in order to ensure all of the Redis keys for a given queue are placed into the same hash slot:
@@ -1091,9 +1094,6 @@ In this example, the job is released for ten seconds if the application is unabl
 <a name="timeout"></a>
 #### Timeout
 
-> **Warning**  
-> The `pcntl` PHP extension must be installed in order to specify job timeouts.
-
 Often, you know roughly how long you expect your queued jobs to take. For this reason, Laravel allows you to specify a "timeout" value. By default, the timeout value is 60 seconds. If a job is processing for longer than the number of seconds specified by the timeout value, the worker processing the job will exit with an error. Typically, the worker will be restarted automatically by a [process manager configured on your server](#supervisor-configuration).
 
 The maximum number of seconds that jobs can run may be specified using the `--timeout` switch on the Artisan command line:
@@ -1121,6 +1121,9 @@ You may also define the maximum number of seconds a job should be allowed to run
     }
 
 Sometimes, IO blocking processes such as sockets or outgoing HTTP connections may not respect your specified timeout. Therefore, when using these features, you should always attempt to specify a timeout using their APIs as well. For example, when using Guzzle, you should always specify a connection and request timeout value.
+
+> **Warning**
+> The `pcntl` PHP extension must be installed in order to specify job timeouts. In addition, a job's "timeout" value should always be less than its ["retry after"](#job-expiration) value. Otherwise, the job may be re-attempted before it has actually finished executing or timed out.
 
 <a name="failing-on-timeout"></a>
 #### Failing On Timeout
@@ -1694,7 +1697,7 @@ sudo supervisorctl reread
 
 sudo supervisorctl update
 
-sudo supervisorctl start laravel-worker:*
+sudo supervisorctl start "laravel-worker:*"
 ```
 
 For more information on Supervisor, consult the [Supervisor documentation](http://supervisord.org/index.html).
@@ -1743,7 +1746,7 @@ If you require more complex logic for determining the job's backoff time, you ma
         return 3;
     }
 
-You may easily configure "exponential" backoffs by returning an array of backoff values from the `backoff` method. In this example, the retry delay will be 1 second for the first retry, 5 seconds for the second retry, and 10 seconds for the third retry:
+You may easily configure "exponential" backoffs by returning an array of backoff values from the `backoff` method. In this example, the retry delay will be 1 second for the first retry, 5 seconds for the second retry, 10 seconds for the third retry, and 10 seconds for every subsequent retry if there are more attempts remaining:
 
     /**
     * Calculate the number of seconds to wait before retrying the job.
