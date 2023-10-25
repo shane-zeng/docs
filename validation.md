@@ -69,7 +69,6 @@ Next, let's take a look at a simple controller that handles incoming requests to
 
     namespace App\Http\Controllers;
 
-    use App\Http\Controllers\Controller;
     use Illuminate\Http\RedirectResponse;
     use Illuminate\Http\Request;
     use Illuminate\View\View;
@@ -543,7 +542,6 @@ If you do not want to use the `validate` method on the request, you may create a
 
     namespace App\Http\Controllers;
 
-    use App\Http\Controllers\Controller;
     use Illuminate\Http\RedirectResponse;
     use Illuminate\Http\Request;
     use Illuminate\Support\Facades\Validator;
@@ -943,6 +941,7 @@ Below is a list of all available validation rules and their function:
 [Regular Expression](#rule-regex)
 [Required](#rule-required)
 [Required If](#rule-required-if)
+[Required If Accepted](#rule-required-if-accepted)
 [Required Unless](#rule-required-unless)
 [Required With](#rule-required-with)
 [Required With All](#rule-required-with-all)
@@ -1665,6 +1664,11 @@ If you would like to construct a more complex condition for the `required_if` ru
     Validator::make($request->all(), [
         'role_id' => Rule::requiredIf(fn () => $request->user()->is_admin),
     ]);
+
+<a name="rule-required-if-accepted"></a>
+#### required_if_accepted:_anotherfield,...
+
+The field under validation must be present and not empty if the _anotherfield_ field is equal to `yes`, `on`, `1`, `"1"`, `true`, or `"true"`.
 
 <a name="rule-required-unless"></a>
 #### required_unless:_anotherfield_,_value_,...

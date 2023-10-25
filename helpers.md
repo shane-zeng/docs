@@ -100,8 +100,6 @@ Laravel includes a variety of global "helper" PHP functions. Many of these funct
 
 </div>
 
-</div>
-
 <a name="urls-method-list"></a>
 ### URLs
 
@@ -1427,7 +1425,7 @@ The `decrypt` function [decrypts](/docs/{{version}}/encryption) the given value.
 <a name="method-dd"></a>
 #### `dd()` {.collection-method}
 
-The `dd` function dumps the given variables and ends execution of the script:
+The `dd` function dumps the given variables and ends the execution of the script:
 
     dd($value);
 

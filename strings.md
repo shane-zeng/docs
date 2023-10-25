@@ -68,6 +68,7 @@ Laravel includes a variety of functions for manipulating string values. Many of 
 [Str::password](#method-str-password)
 [Str::plural](#method-str-plural)
 [Str::pluralStudly](#method-str-plural-studly)
+[Str::position](#method-str-position)
 [Str::random](#method-str-random)
 [Str::remove](#method-str-remove)
 [Str::repeat](#method-str-repeat)
@@ -75,6 +76,7 @@ Laravel includes a variety of functions for manipulating string values. Many of 
 [Str::replaceArray](#method-str-replace-array)
 [Str::replaceFirst](#method-str-replace-first)
 [Str::replaceLast](#method-str-replace-last)
+[Str::replaceMatches](#method-str-replace-matches)
 [Str::replaceStart](#method-str-replace-start)
 [Str::replaceEnd](#method-str-replace-end)
 [Str::reverse](#method-str-reverse)
@@ -89,6 +91,7 @@ Laravel includes a variety of functions for manipulating string values. Many of 
 [Str::substrCount](#method-str-substrcount)
 [Str::substrReplace](#method-str-substrreplace)
 [Str::swap](#method-str-swap)
+[Str::take](#method-take)
 [Str::title](#method-title-case)
 [Str::toHtmlString](#method-str-to-html-string)
 [Str::ucfirst](#method-str-ucfirst)
@@ -157,6 +160,7 @@ Laravel includes a variety of functions for manipulating string values. Many of 
 [padRight](#method-fluent-str-padright)
 [pipe](#method-fluent-str-pipe)
 [plural](#method-fluent-str-plural)
+[position](#method-fluent-str-position)
 [prepend](#method-fluent-str-prepend)
 [remove](#method-fluent-str-remove)
 [repeat](#method-fluent-str-repeat)
@@ -180,6 +184,7 @@ Laravel includes a variety of functions for manipulating string values. Many of 
 [substr](#method-fluent-str-substr)
 [substrReplace](#method-fluent-str-substrreplace)
 [swap](#method-fluent-str-swap)
+[take](#method-fluent-str-take)
 [tap](#method-fluent-str-tap)
 [test](#method-fluent-str-test)
 [title](#method-fluent-str-title)
@@ -772,6 +777,21 @@ You may provide an integer as a second argument to the function to retrieve the 
 
     // VerifiedHuman
 
+<a name="method-str-position"></a>
+#### `Str::position()` {.collection-method}
+
+The `Str::position` method returns the position of the first occurrence of a substring in a string. If the substring does not exist in the given string, `false` is returned:
+
+    use Illuminate\Support\Str;
+
+    $position = Str::position('Hello, World!', 'Hello');
+
+    // 0
+
+    $position = Str::position('Hello, World!', 'W');
+
+    // 7
+
 <a name="method-str-random"></a>
 #### `Str::random()` {.collection-method}
 
@@ -863,6 +883,30 @@ The `Str::replaceLast` method replaces the last occurrence of a given value in a
 
     // the quick brown fox jumps over a lazy dog
 
+<a name="method-str-replace-matches"></a>
+#### `Str::replaceMatches()` {.collection-method}
+
+The `Str::replaceMatches` method replaces all portions of a string matching a pattern with the given replacement string:
+
+    use Illuminate\Support\Str;
+
+    $replaced = Str::replaceMatches(
+        pattern: '/[^A-Za-z0-9]++/',
+        replace: '',
+        subject: '(+1) 501-555-1000'
+    )
+
+    // '15015551000'
+
+The `replaceMatches` method also accepts a closure that will be invoked with each portion of the string matching the given pattern, allowing you to perform the replacement logic within the closure and return the replaced value:
+
+    use Illuminate\Support\Str;
+
+    $replaced = Str::replaceMatches('/\d/', function (array $matches) {
+        return '['.$matches[0].']';
+    }, '123');
+
+    // '[1][2][3]'
 
 <a name="method-str-replace-start"></a>
 #### `Str::replaceStart()` {.collection-method}
@@ -1048,6 +1092,17 @@ The `Str::swap` method replaces multiple values in the given string using PHP's 
     ], 'Tacos are great!');
 
     // Burritos are fantastic!
+
+<a name="method-take"></a>
+#### `Str::take()` {.collection-method}
+
+The `Str::take` method returns a specified number of characters from the beginning of a string:
+
+    use Illuminate\Support\Str;
+
+    $taken = Str::take('Build something amazing!', 5);
+
+    // Build
 
 <a name="method-title-case"></a>
 #### `Str::title()` {.collection-method}
@@ -1908,6 +1963,21 @@ You may provide an integer as a second argument to the function to retrieve the 
 
     // child
 
+<a name="method-fluent-str-position"></a>
+#### `position` {.collection-method}
+
+The `position` method returns the position of the first occurrence of a substring in a string. If the substring does not exist within the string, `false` is returned:
+
+    use Illuminate\Support\Str;
+
+    $position = Str::of('Hello, World!')->position('Hello');
+
+    // 0
+
+    $position = Str::of('Hello, World!')->position('W');
+
+    // 7
+
 <a name="method-fluent-str-prepend"></a>
 #### `prepend` {.collection-method}
 
@@ -2214,6 +2284,17 @@ The `swap` method replaces multiple values in the string using PHP's `strtr` fun
         ]);
 
     // Burritos are fantastic!
+
+<a name="method-fluent-str-take"></a>
+#### `take` {.collection-method}
+
+The `take` method returns a specified number of characters from the beginning of the string:
+
+    use Illuminate\Support\Str;
+
+    $taken = Str::of('Build something amazing!')->take(5);
+
+    // Build
 
 <a name="method-fluent-str-tap"></a>
 #### `tap` {.collection-method}
