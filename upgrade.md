@@ -1,6 +1,6 @@
 # Upgrade Guide
 
-- [Upgrading To 10.0 From 9.x](#upgrade-10.0)
+- [Upgrading to 10.0 from 9.x](#upgrade-10.0)
 
 <a name="high-impact-changes"></a>
 ## High Impact Changes
@@ -44,12 +44,12 @@
 </div>
 
 <a name="upgrade-10.0"></a>
-## Upgrading To 10.0 From 9.x
+## Upgrading to 10.0 from 9.x
 
 <a name="estimated-upgrade-time-??-minutes"></a>
 #### Estimated Upgrade Time: 10 Minutes
 
-> **Note**  
+> [!NOTE]  
 > We attempt to document every possible breaking change. Since some of these breaking changes are in obscure parts of the framework only a portion of these changes may actually affect your application. Want to save time? You can use [Laravel Shift](https://laravelshift.com/) to help automate your application upgrades.
 
 <a name="updating-dependencies"></a>
@@ -130,11 +130,7 @@ The `registerPolicies` method of the `AuthServiceProvider` is now invoked automa
 
 **Likelihood Of Impact: Medium**
 
-Redis [cache tag](/docs/{{version}}/cache#cache-tags) support has been rewritten for better performance and storage efficiency. In previous releases of Laravel, stale cache tags would accumulate in the cache when using Redis as your application's cache driver.
-
-However, to properly prune stale cache tag entries, Laravel's new `cache:prune-stale-tags` Artisan command should be [scheduled](/docs/{{version}}/scheduling) in your application's `App\Console\Kernel` class:
-
-    $schedule->command('cache:prune-stale-tags')->hourly();
+Usage of `Cache::tags()` is only recommended for applications using Memcached. If you are using Redis as your application's cache driver, you should consider moving to Memcached or using an alternative solution.
 
 ### Database
 
@@ -223,6 +219,13 @@ If you are using third-party logging services such as BugSnag or Rollbar, you ma
 
 The deprecated `Bus::dispatchNow` and `dispatch_now` methods have been removed. Instead, your application should use the `Bus::dispatchSync` and `dispatch_sync` methods, respectively.
 
+<a name="dispatch-return"></a>
+#### The `dispatch()` Helper Return Value
+
+**Likelihood Of Impact: Low**
+
+Invoking `dispatch` with a class that does not implement `Illuminate\Contracts\Queue` would previously return the result of the class's `handle` method. However, this will now return an `Illuminate\Foundation\Bus\PendingBatch` instance. You may use `dispatch_sync()` to replicate the previous behavior.
+
 ### Routing
 
 <a name="middleware-aliases"></a>
@@ -287,6 +290,22 @@ public function rules()
         },
     ],
 }
+```
+
+<a name="validation-messages-and-closure-rules"></a>
+#### Validation Messages and Closure Rules
+
+**Likelihood Of Impact: Very Low**
+
+Previously, you could assign a failure message to a different key by providing an array to the `$fail` callback injected into Closure based validation rules. However, you should now provide the key as the first argument and the failure message as the second argument:
+
+```php
+Validator::make([
+    'foo' => 'string',
+    'bar' => [function ($attribute, $value, $fail) {
+        $fail('foo', 'Something went wrong!');
+    }],
+]);
 ```
 
 <a name="form-request-after-method"></a>

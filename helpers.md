@@ -69,6 +69,7 @@ Laravel includes a variety of global "helper" PHP functions. Many of these funct
 [Arr::sortDesc](#method-array-sort-desc)
 [Arr::sortRecursive](#method-array-sort-recursive)
 [Arr::sortRecursiveDesc](#method-array-sort-recursive-desc)
+[Arr::take](#method-array-take)
 [Arr::toCssClasses](#method-array-to-css-classes)
 [Arr::toCssStyles](#method-array-to-css-styles)
 [Arr::undot](#method-array-undot)
@@ -94,6 +95,10 @@ Laravel includes a variety of global "helper" PHP functions. Many of these funct
 [Number::currency](#method-number-currency)
 [Number::fileSize](#method-number-file-size)
 [Number::forHumans](#method-number-for-humans)
+[Number::ordinal](#method-number-ordinal)
+[Number::spell](#method-number-spell)
+[Number::useLocale](#method-number-use-locale)
+[Number::withLocale](#method-number-with-locale)
 
 </div>
 
@@ -838,10 +843,31 @@ If you would like the results sorted in descending order, you may use the `Arr::
 
     $sorted = Arr::sortRecursiveDesc($array);
 
+<a name="method-array-take"></a>
+#### `Arr::take()` {.collection-method}
+
+The `Arr::take` method returns a new array with the specified number of items:
+
+    use Illuminate\Support\Arr;
+
+    $array = [0, 1, 2, 3, 4, 5];
+
+    $chunk = Arr::take(3);
+
+    // [0, 1, 2]
+
+You may also pass a negative integer to take the specified number of items from the end of the array:
+
+    $array = [0, 1, 2, 3, 4, 5];
+
+    $chunk = Arr::take(-2);
+
+    // [4, 5]
+
 <a name="method-array-to-css-classes"></a>
 #### `Arr::toCssClasses()` {.collection-method}
 
-The `Arr::toCssClasses` conditionally compiles a CSS class string. The method accepts an array of classes where the array key contains the class or classes you wish to add, while the value is a boolean expression. If the array element has a numeric key, it will always be included in the rendered class list:
+The `Arr::toCssClasses` method conditionally compiles a CSS class string. The method accepts an array of classes where the array key contains the class or classes you wish to add, while the value is a boolean expression. If the array element has a numeric key, it will always be included in the rendered class list:
 
     use Illuminate\Support\Arr;
 
@@ -1109,11 +1135,11 @@ The `Number::abbreviate` method returns the human-readable format of the provide
 
     // 1K
 
-    $number = Number::forHumans(489939);
+    $number = Number::abbreviate(489939);
 
     // 490K
 
-    $number = Number::forHumans(1230000, precision: 2);
+    $number = Number::abbreviate(1230000, precision: 2);
 
     // 1.23M
 
@@ -1220,6 +1246,87 @@ The `Number::forHumans` method returns the human-readable format of the provided
 
     // 1.23 million
 
+<a name="method-number-ordinal"></a>
+#### `Number::ordinal()` {.collection-method}
+
+The `Number::ordinal` method returns a number's ordinal representation:
+
+    use Illuminate\Support\Number;
+
+    $number = Number::ordinal(1);
+
+    // 1st
+
+    $number = Number::ordinal(2);
+
+    // 2nd
+
+    $number = Number::ordinal(21);
+
+    // 21st
+
+<a name="method-number-spell"></a>
+#### `Number::spell()` {.collection-method}
+
+The `Number::spell` method transforms the given number into a string of words:
+
+    use Illuminate\Support\Number;
+
+    $number = Number::spell(102);
+
+    // one hundred and two
+
+    $number = Number::spell(88, locale: 'fr');
+
+    // quatre-vingt-huit
+
+
+The `after` argument allows you to specify a value after which all numbers should be spelled out:
+
+    $number = Number::spell(10, after: 10);
+
+    // 10
+
+    $number = Number::spell(11, after: 10);
+
+    // eleven
+
+The `until` argument allows you to specify a value before which all numbers should be spelled out:
+
+    $number = Number::spell(5, until: 10);
+
+    // five
+
+    $number = Number::spell(10, until: 10);
+
+    // 10
+
+<a name="method-number-use-locale"></a>
+#### `Number::useLocale()` {.collection-method}
+
+The `Number::useLocale` method sets the default number locale globally, which affects how numbers and currency are formatted by subsequent invocations to the `Number` class's methods:
+
+    use Illuminate\Support\Number;
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot(): void
+    {
+        Number::useLocale('de');
+    }
+
+<a name="method-number-with-locale"></a>
+#### `Number::withLocale()` {.collection-method}
+
+The `Number::withLocale` method executes the given closure using the specified locale and then restores the original locale after the callback has executed:
+
+    use Illuminate\Support\Number;
+
+    $number = Number::withLocale('de', function () {
+        return Number::format(1500);
+    });
+
 <a name="paths"></a>
 ## Paths
 
@@ -1268,7 +1375,7 @@ The `lang_path` function returns the fully qualified path to your application's 
 
     $path = lang_path('en/messages.php');
 
-> **Note**
+> [!NOTE]  
 > By default, the Laravel application skeleton does not include the `lang` directory. If you would like to customize Laravel's language files, you may publish them via the `lang:publish` Artisan command.
 
 <a name="method-mix"></a>
@@ -1614,7 +1721,7 @@ The `env` function retrieves the value of an [environment variable](/docs/{{vers
 
     $env = env('APP_ENV', 'production');
 
-> **Warning**  
+> [!WARNING]  
 > If you execute the `config:cache` command during your deployment process, you should be sure that you are only calling the `env` function from within your configuration files. Once the configuration has been cached, the `.env` file will not be loaded and all calls to the `env` function will return `null`.
 
 <a name="method-event"></a>
@@ -1996,7 +2103,7 @@ The `value` function returns the value it is given. However, if you pass a closu
     });
 
     // false
-    
+
 Additional arguments may be passed to the `value` function. If the first argument is a closure then the additional parameters will be passed to the closure as arguments, otherwise they will be ignored:
 
     $result = value(function (string $name) {
