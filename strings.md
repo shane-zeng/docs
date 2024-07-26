@@ -95,6 +95,7 @@ Laravel includes a variety of functions for manipulating string values. Many of 
 [Str::swap](#method-str-swap)
 [Str::take](#method-take)
 [Str::title](#method-title-case)
+[Str::toBase64](#method-str-to-base64)
 [Str::toHtmlString](#method-str-to-html-string)
 [Str::ucfirst](#method-str-ucfirst)
 [Str::ucsplit](#method-str-ucsplit)
@@ -194,6 +195,7 @@ Laravel includes a variety of functions for manipulating string values. Many of 
 [tap](#method-fluent-str-tap)
 [test](#method-fluent-str-test)
 [title](#method-fluent-str-title)
+[toBase64](#method-fluent-str-to-base64)
 [trim](#method-fluent-str-trim)
 [ucfirst](#method-fluent-str-ucfirst)
 [ucsplit](#method-fluent-str-ucsplit)
@@ -493,6 +495,19 @@ The `Str::inlineMarkdown` method converts GitHub flavored Markdown into inline H
 
     // <strong>Laravel</strong>
 
+#### Markdown Security
+
+By default, Markdown supports raw HTML, which will expose Cross-Site Scripting (XSS) vulnerabilities when used with raw user input. As per the [CommonMark Security documentation](https://commonmark.thephpleague.com/security/), you may use the `html_input` option to either escape or strip raw HTML, and the `allow_unsafe_links` option to specify whether to allow unsafe links. If you need to allow some raw HTML, you should pass your compiled Markdown through an HTML Purifier:
+
+    use Illuminate\Support\Str;
+    
+    Str::inlineMarkdown('Inject: <script>alert("Hello XSS!");</script>', [
+        'html_input' => 'strip',
+        'allow_unsafe_links' => false,
+    ]);
+    
+    // Inject: alert(&quot;Hello XSS!&quot;);
+
 <a name="method-str-is"></a>
 #### `Str::is()` {.collection-method}
 
@@ -556,6 +571,10 @@ The `Str::isUrl` method determines if the given string is a valid URL:
     $isUrl = Str::isUrl('laravel');
 
     // false
+
+The `isUrl` method considers a wide range of protocols as valid. However, you may specify the protocols that should be considered valid by providing them to the `isUrl` method:
+
+    $isUrl = Str::isUrl('http://example.com', ['http', 'https']);
 
 <a name="method-str-is-ulid"></a>
 #### `Str::isUlid()` {.collection-method}
@@ -666,6 +685,19 @@ The `Str::markdown` method converts GitHub flavored Markdown into HTML using [Co
     ]);
 
     // <h1>Taylor Otwell</h1>
+
+#### Markdown Security
+
+By default, Markdown supports raw HTML, which will expose Cross-Site Scripting (XSS) vulnerabilities when used with raw user input. As per the [CommonMark Security documentation](https://commonmark.thephpleague.com/security/), you may use the `html_input` option to either escape or strip raw HTML, and the `allow_unsafe_links` option to specify whether to allow unsafe links. If you need to allow some raw HTML, you should pass your compiled Markdown through an HTML Purifier:
+
+    use Illuminate\Support\Str;
+
+    Str::markdown('Inject: <script>alert("Hello XSS!");</script>', [
+        'html_input' => 'strip',
+        'allow_unsafe_links' => false,
+    ]);
+
+    // <p>Inject: alert(&quot;Hello XSS!&quot;);</p>
 
 <a name="method-str-mask"></a>
 #### `Str::mask()` {.collection-method}
@@ -830,6 +862,16 @@ The `Str::random` method generates a random string of the specified length. This
     use Illuminate\Support\Str;
 
     $random = Str::random(40);
+
+During testing, it may be useful to "fake" the value that is returned by the `Str::random` method. To accomplish this, you may use the `createRandomStringsUsing` method:
+
+    Str::createRandomStringsUsing(function () {
+        return 'fake-random-string';
+    });
+
+To instruct the `random` method to return to generating random strings normally, you may invoke the `createRandomStringsNormally` method:
+
+    Str::createRandomStringsNormally();
 
 <a name="method-str-remove"></a>
 #### `Str::remove()` {.collection-method}
@@ -1145,6 +1187,17 @@ The `Str::title` method converts the given string to `Title Case`:
 
     // A Nice Title Uses The Correct Case
 
+<a name="method-str-to-base64"></a>
+#### `Str::toBase64()` {.collection-method}
+
+The `Str::toBase64` method converts the given string to Base64:
+
+    use Illuminate\Support\Str;
+
+    $base64 = Str::toBase64('Laravel');
+
+    // TGFyYXZlbA==
+
 <a name="method-str-to-html-string"></a>
 #### `Str::toHtmlString()` {.collection-method}
 
@@ -1207,6 +1260,18 @@ use Illuminate\Support\Str;
 $date = Carbon::createFromId((string) Str::ulid());
 ```
 
+During testing, it may be useful to "fake" the value that is returned by the `Str::ulid` method. To accomplish this, you may use the `createUlidsUsing` method:
+
+    use Symfony\Component\Uid\Ulid;
+
+    Str::createUlidsUsing(function () {
+        return new Ulid('01HRDBNHHCKNW2AK4Z29SN82T9');
+    });
+
+To instruct the `ulid` method to return to generating ULIDs normally, you may invoke the `createUlidsNormally` method:
+
+    Str::createUlidsNormally();
+
 <a name="method-str-unwrap"></a>
 #### `Str::unwrap()` {.collection-method}
 
@@ -1230,6 +1295,18 @@ The `Str::uuid` method generates a UUID (version 4):
     use Illuminate\Support\Str;
 
     return (string) Str::uuid();
+
+During testing, it may be useful to "fake" the value that is returned by the `Str::uuid` method. To accomplish this, you may use the `createUuidsUsing` method:
+
+    use Ramsey\Uuid\Uuid;
+
+    Str::createUuidsUsing(function () {
+        return Uuid::fromString('eadbfeac-5258-45c2-bab7-ccb9b5ef74f9');
+    });
+
+To instruct the `uuid` method to return to generating UUIDs normally, you may invoke the `createUuidsNormally` method:
+
+    Str::createUuidsNormally();
 
 <a name="method-str-word-count"></a>
 #### `Str::wordCount()` {.collection-method}
@@ -1635,6 +1712,19 @@ The `inlineMarkdown` method converts GitHub flavored Markdown into inline HTML u
 
     // <strong>Laravel</strong>
 
+#### Markdown Security
+
+By default, Markdown supports raw HTML, which will expose Cross-Site Scripting (XSS) vulnerabilities when used with raw user input. As per the [CommonMark Security documentation](https://commonmark.thephpleague.com/security/), you may use the `html_input` option to either escape or strip raw HTML, and the `allow_unsafe_links` option to specify whether to allow unsafe links. If you need to allow some raw HTML, you should pass your compiled Markdown through an HTML Purifier:
+
+    use Illuminate\Support\Str;
+
+    Str::of('Inject: <script>alert("Hello XSS!");</script>')->inlineMarkdown([
+        'html_input' => 'strip',
+        'allow_unsafe_links' => false,
+    ]);
+
+    // Inject: alert(&quot;Hello XSS!&quot;);
+
 <a name="method-fluent-str-is"></a>
 #### `is` {.collection-method}
 
@@ -1744,6 +1834,10 @@ The `isUrl` method determines if a given string is a URL:
     $result = Str::of('Taylor')->isUrl();
 
     // false
+
+The `isUrl` method considers a wide range of protocols as valid. However, you may specify the protocols that should be considered valid by providing them to the `isUrl` method:
+
+    $result = Str::of('http://example.com')->isUrl(['http', 'https']);
 
 <a name="method-fluent-str-is-uuid"></a>
 #### `isUuid` {.collection-method}
@@ -1855,6 +1949,19 @@ The `markdown` method converts GitHub flavored Markdown into HTML:
     ]);
 
     // <h1>Taylor Otwell</h1>
+
+#### Markdown Security
+
+By default, Markdown supports raw HTML, which will expose Cross-Site Scripting (XSS) vulnerabilities when used with raw user input. As per the [CommonMark Security documentation](https://commonmark.thephpleague.com/security/), you may use the `html_input` option to either escape or strip raw HTML, and the `allow_unsafe_links` option to specify whether to allow unsafe links. If you need to allow some raw HTML, you should pass your compiled Markdown through an HTML Purifier:
+
+    use Illuminate\Support\Str;
+
+    Str::of('Inject: <script>alert("Hello XSS!");</script>')->markdown([
+        'html_input' => 'strip',
+        'allow_unsafe_links' => false,
+    ]);
+
+    // <p>Inject: alert(&quot;Hello XSS!&quot;);</p>
 
 <a name="method-fluent-str-mask"></a>
 #### `mask` {.collection-method}
@@ -2416,6 +2523,17 @@ The `title` method converts the given string to `Title Case`:
     $converted = Str::of('a nice title uses the correct case')->title();
 
     // A Nice Title Uses The Correct Case
+
+<a name="method-fluent-str-to-base64"></a>
+#### `toBase64()` {.collection-method}
+
+The `toBase64` method converts the given string to Base64:
+
+    use Illuminate\Support\Str;
+
+    $base64 = Str::of('Laravel')->toBase64();
+
+    // TGFyYXZlbA==
 
 <a name="method-fluent-str-trim"></a>
 #### `trim` {.collection-method}

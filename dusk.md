@@ -255,7 +255,7 @@ If you had test failures the last time you ran the `dusk` command, you may save 
 php artisan dusk:fails
 ```
 
-The `dusk` command accepts any argument that is normally accepted by the PHPUnit test runner, such as allowing you to only run the tests for a given [group](https://phpunit.readthedocs.io/en/10.1/annotations.html#group):
+The `dusk` command accepts any argument that is normally accepted by the PHPUnit test runner, such as allowing you to only run the tests for a given [group](https://docs.phpunit.de/en/10.5/annotations.html#group):
 
 ```shell
 php artisan dusk --group=foo
@@ -782,6 +782,8 @@ The `doubleClick` method may be used to simulate the double click of a mouse:
 
     $browser->doubleClick();
 
+    $browser->doubleClick('.selector');
+
 The `rightClick` method may be used to simulate the right click of a mouse:
 
     $browser->rightClick();
@@ -790,6 +792,8 @@ The `rightClick` method may be used to simulate the right click of a mouse:
 
 The `clickAndHold` method may be used to simulate a mouse button being clicked and held down. A subsequent call to the `releaseMouse` method will undo this behavior and release the mouse button:
 
+    $browser->clickAndHold('.selector');
+
     $browser->clickAndHold()
             ->pause(1000)
             ->releaseMouse();
@@ -797,6 +801,8 @@ The `clickAndHold` method may be used to simulate a mouse button being clicked a
 The `controlClick` method may be used to simulate the `ctrl+click` event within the browser:
 
     $browser->controlClick();
+
+    $browser->controlClick('.selector');
 
 <a name="mouseover"></a>
 #### Mouseover

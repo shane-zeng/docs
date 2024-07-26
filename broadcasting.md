@@ -3,10 +3,12 @@
 - [Introduction](#introduction)
 - [Server Side Installation](#server-side-installation)
     - [Configuration](#configuration)
+    - [Reverb](#reverb)
     - [Pusher Channels](#pusher-channels)
     - [Ably](#ably)
     - [Open Source Alternatives](#open-source-alternatives)
 - [Client Side Installation](#client-side-installation)
+    - [Reverb](#client-reverb)
     - [Pusher Channels](#client-pusher-channels)
     - [Ably](#client-ably)
 - [Concept Overview](#concept-overview)
@@ -52,7 +54,7 @@ The core concepts behind broadcasting are simple: clients connect to named chann
 <a name="supported-drivers"></a>
 #### Supported Drivers
 
-By default, Laravel includes two server-side broadcasting drivers for you to choose from: [Pusher Channels](https://pusher.com/channels) and [Ably](https://ably.com). However, community driven packages such as [soketi](https://docs.soketi.app/) provide additional broadcasting drivers that do not require commercial broadcasting providers.
+By default, Laravel includes three server-side broadcasting drivers for you to choose from: [Laravel Reverb](https://reverb.laravel.com), [Pusher Channels](https://pusher.com/channels), and [Ably](https://ably.com).
 
 > [!NOTE]  
 > Before diving into event broadcasting, make sure you have read Laravel's documentation on [events and listeners](/docs/{{version}}/events).
@@ -78,6 +80,23 @@ Before broadcasting any events, you will first need to register the `App\Provide
 #### Queue Configuration
 
 You will also need to configure and run a [queue worker](/docs/{{version}}/queues). All event broadcasting is done via queued jobs so that the response time of your application is not seriously affected by events being broadcast.
+
+<a name="reverb"></a>
+### Reverb
+
+You may install Reverb using the Composer package manager:
+
+```sh
+composer require laravel/reverb
+```
+
+Once the package is installed, you may run Reverb's installation command to publish the configuration, update your applications's broadcasting configuration, and add Reverb's required environment variables:
+
+```sh
+php artisan reverb:install
+```
+
+You can find detailed Reverb installation and usage instructions in the [Reverb documentation](/docs/{{version}}/reverb).
 
 <a name="pusher-channels"></a>
 ### Pusher Channels
@@ -148,6 +167,43 @@ Finally, you are ready to install and configure [Laravel Echo](#client-side-inst
 
 <a name="client-side-installation"></a>
 ## Client Side Installation
+
+<a name="client-reverb"></a>
+### Reverb
+
+[Laravel Echo](https://github.com/laravel/echo) is a JavaScript library that makes it painless to subscribe to channels and listen for events broadcast by your server-side broadcasting driver. You may install Echo via the NPM package manager. In this example, we will also install the `pusher-js` package since Reverb utilizes the Pusher protocol for WebSocket subscriptions, channels, and messages:
+
+```shell
+npm install --save-dev laravel-echo pusher-js
+```
+
+Once Echo is installed, you are ready to create a fresh Echo instance in your application's JavaScript. A great place to do this is at the bottom of the `resources/js/bootstrap.js` file that is included with the Laravel framework. By default, an example Echo configuration is already included in this file - you simply need to uncomment it and update the `broadcaster` configuration option to `reverb`:
+
+```js
+import Echo from 'laravel-echo';
+
+import Pusher from 'pusher-js';
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+    broadcaster: 'reverb',
+    key: import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost: import.meta.env.VITE_REVERB_HOST,
+    wsPort: import.meta.env.VITE_REVERB_PORT,
+    wssPort: import.meta.env.VITE_REVERB_PORT,
+    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    enabledTransports: ['ws', 'wss'],
+});
+```
+
+Next, you should compile your application's assets:
+
+```shell
+npm run build
+```
+
+> [!WARNING]  
+> The Laravel Echo `reverb` broadcaster requires laravel-echo v1.16.0+.
 
 <a name="client-pusher-channels"></a>
 ### Pusher Channels
@@ -263,7 +319,7 @@ Events are broadcast over "channels", which may be specified as public or privat
 
 Before diving into each component of event broadcasting, let's take a high level overview using an e-commerce store as an example.
 
-In our application, let's assume we have a page that allows users to view the shipping status for their orders. Let's also assume that a `OrderShipmentStatusUpdated` event is fired when a shipping status update is processed by the application:
+In our application, let's assume we have a page that allows users to view the shipping status for their orders. Let's also assume that an `OrderShipmentStatusUpdated` event is fired when a shipping status update is processed by the application:
 
     use App\Events\OrderShipmentStatusUpdated;
 
@@ -290,7 +346,7 @@ When a user is viewing one of their orders, we don't want them to have to refres
         /**
          * The order instance.
          *
-         * @var \App\Order
+         * @var \App\Models\Order
          */
         public $order;
     }
@@ -702,7 +758,7 @@ However, remember that we also broadcast the task's creation. If your JavaScript
 <a name="only-to-others-configuration"></a>
 #### Configuration
 
-When you initialize a Laravel Echo instance, a socket ID is assigned to the connection. If you are using a global [Axios](https://github.com/mzabriskie/axios) instance to make HTTP requests from your JavaScript application, the socket ID will automatically be attached to every outgoing request as a `X-Socket-ID` header. Then, when you call the `toOthers` method, Laravel will extract the socket ID from the header and instruct the broadcaster to not broadcast to any connections with that socket ID.
+When you initialize a Laravel Echo instance, a socket ID is assigned to the connection. If you are using a global [Axios](https://github.com/mzabriskie/axios) instance to make HTTP requests from your JavaScript application, the socket ID will automatically be attached to every outgoing request as an `X-Socket-ID` header. Then, when you call the `toOthers` method, Laravel will extract the socket ID from the header and instruct the broadcaster to not broadcast to any connections with that socket ID.
 
 If you are not using a global Axios instance, you will need to manually configure your JavaScript application to send the `X-Socket-ID` header with all outgoing requests. You may retrieve the socket ID using the `Echo.socketId` method:
 
@@ -857,7 +913,7 @@ Echo.join(`chat.${roomId}`)
     });
 ```
 
-The `here` callback will be executed immediately once the channel is joined successfully, and will receive an array containing the user information for all of the other users currently subscribed to the channel. The `joining` method will be executed when a new user joins a channel, while the `leaving` method will be executed when a user leaves the channel. The `error` method will be executed when the authentication endpoint returns a HTTP status code other than 200 or if there is a problem parsing the returned JSON.
+The `here` callback will be executed immediately once the channel is joined successfully, and will receive an array containing the user information for all of the other users currently subscribed to the channel. The `joining` method will be executed when a new user joins a channel, while the `leaving` method will be executed when a user leaves the channel. The `error` method will be executed when the authentication endpoint returns an HTTP status code other than 200 or if there is a problem parsing the returned JSON.
 
 <a name="broadcasting-to-presence-channels"></a>
 ### Broadcasting to Presence Channels
@@ -988,7 +1044,7 @@ protected function newBroadcastableEvent(string $event): BroadcastableModelEvent
 
 As you may have noticed, the `broadcastOn` method in the model example above did not return `Channel` instances. Instead, Eloquent models were returned directly. If an Eloquent model instance is returned by your model's `broadcastOn` method (or is contained in an array returned by the method), Laravel will automatically instantiate a private channel instance for the model using the model's class name and primary key identifier as the channel name.
 
-So, an `App\Models\User` model with an `id` of `1` would be converted into a `Illuminate\Broadcasting\PrivateChannel` instance with a name of `App.Models.User.1`. Of course, in addition to returning Eloquent model instances from your model's `broadcastOn` method, you may return complete `Channel` instances in order to have full control over the model's channel names:
+So, an `App\Models\User` model with an `id` of `1` would be converted into an `Illuminate\Broadcasting\PrivateChannel` instance with a name of `App.Models.User.1`. Of course, in addition to returning Eloquent model instances from your model's `broadcastOn` method, you may return complete `Channel` instances in order to have full control over the model's channel names:
 
 ```php
 use Illuminate\Broadcasting\PrivateChannel;

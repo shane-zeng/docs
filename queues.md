@@ -1263,7 +1263,9 @@ To dispatch a batch of jobs, you should use the `batch` method of the `Bus` faca
         new ImportCsv(201, 300),
         new ImportCsv(301, 400),
         new ImportCsv(401, 500),
-    ])->progress(function (Batch $batch) {
+    ])->before(function (Batch $batch) {
+        // The batch has been created but no jobs have been added...
+    })->progress(function (Batch $batch) {
         // A single job has completed successfully...
     })->then(function (Batch $batch) {
         // All jobs completed successfully...
@@ -1895,7 +1897,7 @@ When a particular job fails, you may want to send an alert to your users or reve
         /**
          * Handle a job failure.
          */
-        public function failed(Throwable $exception): void
+        public function failed(?Throwable $exception): void
         {
             // Send user notification of failure, etc...
         }

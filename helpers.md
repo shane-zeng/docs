@@ -90,12 +90,13 @@ Laravel includes a variety of global "helper" PHP functions. Many of these funct
 <div class="collection-method-list" markdown="1">
 
 [Number::abbreviate](#method-number-abbreviate)
-[Number::format](#method-number-format)
-[Number::percentage](#method-number-percentage)
+[Number::clamp](#method-number-clamp)
 [Number::currency](#method-number-currency)
 [Number::fileSize](#method-number-file-size)
 [Number::forHumans](#method-number-for-humans)
+[Number::format](#method-number-format)
 [Number::ordinal](#method-number-ordinal)
+[Number::percentage](#method-number-percentage)
 [Number::spell](#method-number-spell)
 [Number::useLocale](#method-number-use-locale)
 [Number::withLocale](#method-number-with-locale)
@@ -852,7 +853,7 @@ The `Arr::take` method returns a new array with the specified number of items:
 
     $array = [0, 1, 2, 3, 4, 5];
 
-    $chunk = Arr::take(3);
+    $chunk = Arr::take($array, 3);
 
     // [0, 1, 2]
 
@@ -860,7 +861,7 @@ You may also pass a negative integer to take the specified number of items from 
 
     $array = [0, 1, 2, 3, 4, 5];
 
-    $chunk = Arr::take(-2);
+    $chunk = Arr::take($array, -2);
 
     // [4, 5]
 
@@ -888,6 +889,8 @@ The `Arr::toCssClasses` method conditionally compiles a CSS class string. The me
 The `Arr::toCssStyles` conditionally compiles a CSS style string. The method accepts an array of classes where the array key contains the class or classes you wish to add, while the value is a boolean expression. If the array element has a numeric key, it will always be included in the rendered class list:
 
 ```php
+use Illuminate\Support\Arr;
+
 $hasColor = true;
 
 $array = ['background-color: blue', 'color: blue' => $hasColor];
@@ -1143,51 +1146,28 @@ The `Number::abbreviate` method returns the human-readable format of the provide
 
     // 1.23M
 
-<a name="method-number-format"></a>
-#### `Number::format()` {.collection-method}
+<a name="method-number-clamp"></a>
+#### `Number::clamp()` {.collection-method}
 
-The `Number::format` method formats the given number into a locale specific string:
-
-    use Illuminate\Support\Number;
-
-    $number = Number::format(100000);
-
-    // 100,000
-
-    $number = Number::format(100000, precision: 2);
-
-    // 100,000.00
-
-    $number = Number::format(100000.123, maxPrecision: 2);
-
-    // 100,000.12
-
-    $number = Number::format(100000, locale: 'de');
-
-    // 100.000
-
-<a name="method-number-percentage"></a>
-#### `Number::percentage()` {.collection-method}
-
-The `Number::percentage` method returns the percentage representation of the given value as a string:
+The `Number::clamp` method ensures a given number stays within a specified range. If the number is lower than the minimum, the minimum value is returned. If the number is higher than the maximum, the maximum value is returned:
 
     use Illuminate\Support\Number;
 
-    $percentage = Number::percentage(10);
+    $number = Number::clamp(105, min: 10, max: 100);
 
-    // 10%
+    // 100
 
-    $percentage = Number::percentage(10, precision: 2);
+    $number = Number::clamp(5, min: 10, max: 100);
 
-    // 10.00%
+    // 10
 
-    $percentage = Number::percentage(10.123, maxPrecision: 2);
+    $number = Number::clamp(10, min: 10, max: 100);
 
-    // 10.12%
+    // 10
 
-    $percentage = Number::percentage(10, precision: 2, locale: 'de');
+    $number = Number::clamp(20, min: 10, max: 100);
 
-    // 10,00%
+    // 20
 
 <a name="method-number-currency"></a>
 #### `Number::currency()` {.collection-method}
@@ -1246,6 +1226,29 @@ The `Number::forHumans` method returns the human-readable format of the provided
 
     // 1.23 million
 
+<a name="method-number-format"></a>
+#### `Number::format()` {.collection-method}
+
+The `Number::format` method formats the given number into a locale specific string:
+
+    use Illuminate\Support\Number;
+
+    $number = Number::format(100000);
+
+    // 100,000
+
+    $number = Number::format(100000, precision: 2);
+
+    // 100,000.00
+
+    $number = Number::format(100000.123, maxPrecision: 2);
+
+    // 100,000.12
+
+    $number = Number::format(100000, locale: 'de');
+
+    // 100.000
+
 <a name="method-number-ordinal"></a>
 #### `Number::ordinal()` {.collection-method}
 
@@ -1264,6 +1267,29 @@ The `Number::ordinal` method returns a number's ordinal representation:
     $number = Number::ordinal(21);
 
     // 21st
+
+<a name="method-number-percentage"></a>
+#### `Number::percentage()` {.collection-method}
+
+The `Number::percentage` method returns the percentage representation of the given value as a string:
+
+    use Illuminate\Support\Number;
+
+    $percentage = Number::percentage(10);
+
+    // 10%
+
+    $percentage = Number::percentage(10, precision: 2);
+
+    // 10.00%
+
+    $percentage = Number::percentage(10.123, maxPrecision: 2);
+
+    // 10.12%
+
+    $percentage = Number::percentage(10, precision: 2, locale: 'de');
+
+    // 10,00%
 
 <a name="method-number-spell"></a>
 #### `Number::spell()` {.collection-method}

@@ -13,6 +13,7 @@
     - [Where Clauses](#where-clauses)
     - [Or Where Clauses](#or-where-clauses)
     - [Where Not Clauses](#where-not-clauses)
+    - [Where Any / All Clauses](#where-any-all-clauses)
     - [JSON Where Clauses](#json-where-clauses)
     - [Additional Where Clauses](#additional-where-clauses)
     - [Logical Grouping](#logical-grouping)
@@ -380,6 +381,26 @@ You may use the `joinSub`, `leftJoinSub`, and `rightJoinSub` methods to join a q
                 $join->on('users.id', '=', 'latest_posts.user_id');
             })->get();
 
+<a name="lateral-joins"></a>
+#### Lateral Joins
+
+> [!WARNING]  
+> Lateral joins are currently supported by PostgreSQL, MySQL >= 8.0.14, and SQL Server.
+
+You may use the `joinLateral` and `leftJoinLateral` methods to perform a "lateral join" with a subquery. Each of these methods receives two arguments: the subquery and its table alias. The join condition(s) should be specified within the `where` clause of the given subquery. Lateral joins are evaluated for each row and can reference columns outside the subquery.
+
+In this example, we will retrieve a collection of users as well as the user's three most recent blog posts. Each user can produce up to three rows in the result set: one for each of their most recent blog posts. The join condition is specified with a `whereColumn` clause within the subquery, referencing the current user row:
+
+    $latestPosts = DB::table('posts')
+                       ->select('id as post_id', 'title as post_title', 'created_at as post_created_at')
+                       ->whereColumn('user_id', 'users.id')
+                       ->orderBy('created_at', 'desc')
+                       ->limit(3);
+
+    $users = DB::table('users')
+                ->joinLateral($latestPosts, 'latest_posts')
+                ->get();
+
 <a name="unions"></a>
 ## Unions
 
@@ -480,6 +501,53 @@ The `whereNot` and `orWhereNot` methods may be used to negate a given group of q
                               ->orWhere('price', '<', 10);
                     })
                     ->get();
+
+<a name="where-any-all-clauses"></a>
+### Where Any / All Clauses
+
+Sometimes you may need to apply the same query constraints to multiple columns. For example, you may want to retrieve all records where any columns in a given list are `LIKE` a given value. You may accomplish this using the `whereAny` method:
+
+    $users = DB::table('users')
+                ->where('active', true)
+                ->whereAny([
+                    'name',
+                    'email',
+                    'phone',
+                ], 'LIKE', 'Example%')
+                ->get();
+
+The query above will result in the following SQL:
+
+```sql
+SELECT *
+FROM users
+WHERE active = true AND (
+    name LIKE 'Example%' OR
+    email LIKE 'Example%' OR
+    phone LIKE 'Example%'
+)
+```
+
+Similarly, the `whereAll` method may be used to retrieve records where all of the given columns match a given constraint:
+
+    $posts = DB::table('posts')
+                ->where('published', true)
+                ->whereAll([
+                    'title',
+                    'content',
+                ], 'LIKE', '%Laravel%')
+                ->get();
+
+The query above will result in the following SQL:
+
+```sql
+SELECT *
+FROM posts
+WHERE published = true AND (
+    title LIKE '%Laravel%' AND
+    content LIKE '%Laravel%'
+)
+```
 
 <a name="json-where-clauses"></a>
 ### JSON Where Clauses
